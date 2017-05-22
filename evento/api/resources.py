@@ -1,16 +1,26 @@
 from tastypie.resources import ModelResource
-from tastypie import fields, utils
-from evento.models import TipoInscricao, Inscricoes, PessoaFisica
+from tastypie import fields
+from evento.models import Evento, TipoInscricao, Inscricoes, PessoaFisica
 from django.contrib.auth.models import User
+from tastypie.authorization import Authorization
 
 
 class TipoInscricaoResource(ModelResource):
     class Meta:
         queryset = TipoInscricao.objects.all()
-        allowed_methods = ['get']
+        allowed_methods = ['get', 'post']
+        always_return_data = True
+        authorization = Authorization()
         filtering = {
             "descricao": ('exact', 'startswith',)
         }
+
+
+class EventoResource(ModelResource):
+    class Meta:
+        queryset = Evento.objects.all()
+        allowed_methods = ['get', 'post']
+        always_return_data = True
 
 
 class UserResource(ModelResource):
@@ -27,7 +37,12 @@ class PessoaFisicaResource(ModelResource):
 
 
 class InscricaoResource(ModelResource):
-    pessoa = fields.ToOneField(PessoaFisicaResource, 'pessoa')
+    pessoafisica = fields.ToOneField(PessoaFisicaResource, 'pessoa')
+    evento = fields.ToOneField(EventoResource, 'evento')
+    tipoInscricao = fields.ToOneField(TipoInscricaoResource, 'tipoInscricao')
+
     class Meta:
         queryset = Inscricoes.objects.all()
-        allowed_methods = ['get']
+        allowed_methods = ['get', 'post']
+        always_return_data = True
+        authorization = Authorization()
