@@ -3,6 +3,7 @@ from tastypie import fields
 from evento.models import Evento, TipoInscricao, Inscricoes, PessoaFisica
 from django.contrib.auth.models import User
 from tastypie.authorization import Authorization
+from tastypie.exceptions import Unauthorized
 
 
 class TipoInscricaoResource(ModelResource):
@@ -14,6 +15,14 @@ class TipoInscricaoResource(ModelResource):
         filtering = {
             "descricao": ('exact', 'startswith',)
         }
+
+
+    def obj_create(self, bundle, **kwargs):
+        tipo = TipoInscricao()
+        tipo.descricao = bundle.data['descricao'].upper()
+        tipo.save()
+        bundle.obj = tipo
+        return bundle
 
 
 class EventoResource(ModelResource):
@@ -43,6 +52,13 @@ class InscricaoResource(ModelResource):
 
     class Meta:
         queryset = Inscricoes.objects.all()
-        allowed_methods = ['get', 'post']
+        allowed_methods = ['get', 'post', 'delete']
         always_return_data = True
         authorization = Authorization()
+
+    def obj_get_list(self, bundle, **kwargs):
+        return self.get_object_list(bundle.request)
+
+    def obj_delete_list(self, bundle, **kwargs):
+        raise Unauthorized("Sorry, no deletes.")
+
