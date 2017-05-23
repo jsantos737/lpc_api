@@ -9,21 +9,24 @@ from tastypie.exceptions import Unauthorized
 class TipoInscricaoResource(ModelResource):
     class Meta:
         queryset = TipoInscricao.objects.all()
-        allowed_methods = ['get', 'post']
+        allowed_methods = ['get', 'post', 'delete']
         always_return_data = True
         authorization = Authorization()
         filtering = {
             "descricao": ('exact', 'startswith',)
         }
 
-
     def obj_create(self, bundle, **kwargs):
-        tipo = TipoInscricao()
-        tipo.descricao = bundle.data['descricao'].upper()
-        tipo.save()
-        bundle.obj = tipo
-        return bundle
-
+        if not(TipoInscricao.objects.filter(descricao=bundle.data['descricao'].upper())):
+            tipo = TipoInscricao()
+            tipo.descricao = bundle.data['descricao'].upper()
+            tipo.save()
+            bundle.obj = tipo
+            return bundle
+        else:
+            raise Unauthorized('Ja existe tipo com esse nome!')
+    def obj_delete_list(self, bundle, **kwargs):
+        raise Unauthorized("Nao pode deletar Lista Inteira!")
 
 class EventoResource(ModelResource):
     class Meta:
@@ -61,4 +64,3 @@ class InscricaoResource(ModelResource):
 
     def obj_delete_list(self, bundle, **kwargs):
         raise Unauthorized("Sorry, no deletes.")
-
